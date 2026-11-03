@@ -107,7 +107,12 @@
   var R = null;
   // código del mago: paintsketch.es/NZ (en la dirección) o ?r=NZ
   try { var pc = (location.pathname.split('/').filter(Boolean).pop() || ''); if (/^[A-Za-z0-9]{2,16}$/.test(pc) && !/\.html?$/.test(pc) && pc !== 'paintsketch') history.replaceState(null, '', '/?r=' + pc), location.search; } catch(e){}
-  try { R = new URLSearchParams(location.search).get('r'); if (R && /^[A-Za-z0-9]{2,16}$/.test(R)) localStorage.setItem('qsR', R); else R = localStorage.getItem('qsR'); } catch(e){}
+  try {
+    R = new URLSearchParams(location.search).get('r');
+    if (R && /^[A-Za-z0-9]{2,16}$/.test(R)) localStorage.setItem('qsR', R);
+    else if (navigator.standalone && localStorage.getItem('qsR')) R = localStorage.getItem('qsR');   // abierta desde la pantalla de inicio
+    else R = 'direct';                                                                               // paintsketch.es sin código: modo directo
+  } catch(e){ R = 'direct'; }
   var BROKERS = ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt'];
   var net = null;
   function dev(){ var d = ''; try { d = localStorage.getItem('qsDev') || ''; } catch(e){} if (!d){ d = Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4); try { localStorage.setItem('qsDev', d); } catch(e){} } return d; }
