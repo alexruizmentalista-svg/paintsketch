@@ -214,13 +214,36 @@
         if (!cur){ flashName(); return; }
         var prev = el.style.fill || '';
         if (prev === cur[1]) return;
-        undo.push({ t: 'fill', el: el, prev: prev });
-        el.style.fill = cur[1];
+        undo.push({ t: 'fill', el: el, prev: prev, pl: el.dataset.cl || '' });
+        el.style.fill = cur[1]; el.dataset.cl = cur[0];
+        if (el.dataset.p) sendParts();
       });
     });
     setTool(d.svg ? 'fill' : 'brush');
     $('gal').classList.remove('on'); $('ed').classList.add('on');
     send({ k: 'picks', app: 'Paint Sketch', t: 'Dibujo', items: [d.n] });
+  }
+  // Dibujos con partes con nombre (muñeco): te llega qué color va en cada parte
+  var partsT = 0;
+  function sendParts(){
+    clearTimeout(partsT);
+    partsT = setTimeout(function(){
+      var seen = {}, rows = [];
+      [].forEach.call(art.querySelectorAll('.r[data-p]'), function(el){
+        var p = el.dataset.p; if (seen[p] || !el.style.fill) return; seen[p] = 1;
+        var y = 0; try { y = el.getBBox().y; } catch(e){}
+        rows.push({ p: p, c: el.dataset.cl || '', y: y });
+      });
+      rows.sort(function(a, b){ return a.y - b.y; });
+      // izq./der. del mismo color se juntan en una línea
+      var items = [], by = {}; rows.forEach(function(r){ by[r.p] = r.c; });
+      rows.forEach(function(r){
+        var m = r.p.match(/^(.*) (izq|der)\.$/);
+        if (m){ var o = m[1] + (m[2] === 'izq' ? ' der.' : ' izq.'); if (by[o] === r.c){ if (m[2] === 'izq') items.push(m[1] + ': ' + r.c); return; } }
+        items.push(r.p + ': ' + r.c);
+      });
+      if (items.length) send({ k: 'picks', app: 'Paint Sketch', t: drawing ? drawing.n : 'Dibujo', items: items });
+    }, 400);
   }
   function flashName(){ var n = $('cname'); n.textContent = 'Primero elige un color'; n.style.color = '#FF6B4A'; setTimeout(function(){ n.style.color = ''; if (!cur) n.textContent = 'Elige un color'; }, 1200); }
   function setTool(t){
@@ -233,7 +256,7 @@
   $('back').addEventListener('click', function(){ $('ed').classList.remove('on'); $('gal').classList.add('on'); });
   $('undo').addEventListener('click', function(){
     var u = undo.pop(); if (!u) return;
-    if (u.t === 'fill') u.el.style.fill = u.prev; else { strokes.pop(); redraw(); }
+    if (u.t === 'fill'){ u.el.style.fill = u.prev; u.el.dataset.cl = u.pl || ''; if (u.el.dataset.p) sendParts(); } else { strokes.pop(); redraw(); }
   });
   $('clear').addEventListener('click', function(){
     [].forEach.call(art.querySelectorAll('.r'), function(el){ el.style.fill = ''; });

@@ -103,5 +103,22 @@ window.QS_DRAWINGS = [
   <path class="r" d="M70 115 H230 L215 240 Q150 255 85 240 Z"/>
   <ellipse class="r" cx="150" cy="115" rx="80" ry="14"/>
   <path class="r" d="M110 165 a18 18 0 0 1 36 0 a18 18 0 0 1 36 0 Q178 195 146 215 Q114 195 110 165 Z"/>
-  <path class="l" d="M120 85c-10-15 10-25 0-40M150 85c-10-15 10-25 0-40M180 85c-10-15 10-25 0-40"/>` }
+  <path class="l" d="M120 85c-10-15 10-25 0-40M150 85c-10-15 10-25 0-40M180 85c-10-15 10-25 0-40"/>` },
+ { id:'muneco', n:'Muñeco', svg:`
+  <path class="l" d="M150 34v26"/><circle class="r" data-p="Anilla" cx="150" cy="22" r="13"/><circle cx="150" cy="22" r="6" fill="#fff" stroke="#1d1b19" stroke-width="3" style="pointer-events:none"/>
+  <path class="r" data-p="Brazo izq." d="M112 138 L86 150 L76 200 L94 204 L102 166 Z"/>
+  <path class="r" data-p="Brazo der." d="M188 138 L214 150 L224 200 L206 204 L198 166 Z"/>
+  <circle class="r" data-p="Mano izq." cx="85" cy="213" r="11"/>
+  <circle class="r" data-p="Mano der." cx="215" cy="213" r="11"/>
+  <rect class="r" data-p="Cuello" x="137" y="122" width="26" height="14"/>
+  <path class="r" data-p="Camiseta" d="M110 134 H190 L204 212 H96 Z"/>
+  <rect class="r" data-p="Cara" x="112" y="60" width="76" height="64" rx="14"/>
+  <path class="r" data-p="Pelo" d="M108 82 V74 Q108 50 150 48 Q192 50 192 74 V82 Q170 70 150 76 Q130 70 108 82 Z"/>
+  <circle class="r" data-p="Ojos" cx="136" cy="94" r="5"/><circle class="r" data-p="Ojos" cx="164" cy="94" r="5"/>
+  <rect class="r" data-p="Cinturón" x="96" y="212" width="108" height="16"/>
+  <rect class="r" data-p="Pantalón izq." x="98" y="228" width="50" height="48"/>
+  <rect class="r" data-p="Pantalón der." x="152" y="228" width="50" height="48"/>
+  <rect class="r" data-p="Zapato izq." x="94" y="276" width="56" height="16" rx="5"/>
+  <rect class="r" data-p="Zapato der." x="150" y="276" width="56" height="16" rx="5"/>
+  <path class="l" d="M138 108 Q150 117 162 108M136 134 L150 150 L164 134"/>` }
 ];
