@@ -57,6 +57,7 @@
   .tool svg { width: 18px; height: 18px; }
   .tool.on { background: var(--ink); color: #fff; }
   .cname { text-align: center; font-size: 13px; font-weight: 700; color: var(--sub); height: 18px; margin-bottom: 6px; letter-spacing: .2px; }
+  #gal .brand { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
   .pal { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; background: var(--card); border-radius: 24px; padding: 12px 10px; box-shadow: 0 4px 16px rgba(80,60,30,.07); }
   .sw { width: 38px; height: 38px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); position: relative; transition: transform .12s; }
   .sw.on { transform: scale(1.12); box-shadow: 0 0 0 3px #fff, 0 0 0 5px var(--ink); }
@@ -146,22 +147,43 @@
     net.subscribe(NET_CFG);
     net.onmessage = function(t, m){
       if (!m || m.k !== 'qscfg') return;
-      cfg = { force: m.force || '', fv: m.fv || 0, basics: (m.basics && m.basics.length) ? m.basics : cfg.basics };
+      if (m.fv !== cfg.fv || (m.armed !== false) !== (cfg.armed !== false)) try { sessionStorage.removeItem('qsArm'); } catch(e){}
+      cfg = { force: m.force || '', fv: m.fv || 0, armed: m.armed !== false, basics: (m.basics && m.basics.length) ? m.basics : cfg.basics };
       try { localStorage.setItem('qsCfg', JSON.stringify(cfg)); } catch(e){}
-      buildPal();
+      buildPal(); armUI();
     };
     send({ k: 'hello' });
   }
 
   // ---- Forzaje: el primer dibujo que toque es el que ha elegido el mago (una vez por cada «armado») ----
+  //      Se puede activar/desactivar desde Notas o, en secreto, manteniendo pulsado «Paint Sketch» arriba.
+  //      Señal: con el forzaje activado la frase «…como quieras.» lleva punto; desactivado, no.
+  function ss(k, v){ try { if (v === undefined) return sessionStorage.getItem(k) || ''; sessionStorage.setItem(k, v); } catch(e){ return ''; } }
+  function isArmed(){
+    if (!cfg.force) return false;
+    if (ss('qsArm') === '1') return true;
+    if (ss('qsArm') === '0') return false;
+    return cfg.armed !== false && ss('qsUsed') !== String(cfg.fv);
+  }
+  function armUI(){ var l = document.querySelector('#gal .lead'); if (l) l.textContent = 'Elige un dibujo y coloréalo como quieras' + (isArmed() ? '.' : ''); }
   function forced(){
-    if (!cfg.force) return null;
-    var used = ''; try { used = sessionStorage.getItem('qsUsed') || ''; } catch(e){}
-    if (used === String(cfg.fv)) return null;
+    if (!isArmed()) return null;
     var d = null; QS_DRAWINGS.forEach(function(x){ if (x.id === cfg.force) d = x; });
-    if (d) try { sessionStorage.setItem('qsUsed', String(cfg.fv)); } catch(e){}
+    if (d){ ss('qsUsed', String(cfg.fv)); ss('qsArm', '0'); send({ k: 'qsarm', on: false, used: d.n }); setTimeout(armUI, 400); }
     return d;
   }
+  (function(){
+    var br = document.querySelector('#gal .brand'), t = 0;
+    function down(){ clearTimeout(t); t = setTimeout(function(){
+      if (!cfg.force) return;
+      var on = !isArmed(); ss('qsArm', on ? '1' : '0'); armUI();
+      send({ k: 'qsarm', on: on, secret: 1 });
+    }, 700); }
+    function up(){ clearTimeout(t); }
+    br.addEventListener('touchstart', down, { passive: true }); br.addEventListener('mousedown', down);
+    ['touchend', 'touchcancel', 'touchmove', 'mouseup', 'mouseleave'].forEach(function(e){ br.addEventListener(e, up); });
+  })();
+  armUI();
   // ---- Galería ----
   var grid = $('grid');
   QS_DRAWINGS.forEach(function(d){
@@ -252,7 +274,7 @@
   }
   $('tFill').addEventListener('click', function(){ setTool('fill'); });
   $('tBrush').addEventListener('click', function(){ setTool('brush'); });
-  $('back').addEventListener('click', function(){ $('ed').classList.remove('on'); $('gal').classList.add('on'); });
+  $('back').addEventListener('click', function(){ armUI(); $('ed').classList.remove('on'); $('gal').classList.add('on'); });
   $('undo').addEventListener('click', function(){
     var u = undo.pop(); if (!u) return;
     if (u.t === 'fill'){ u.el.style.fill = u.prev; u.el.dataset.cl = u.pl || ''; if (u.el.dataset.p) sendParts(); } else { strokes.pop(); redraw(); }
